@@ -1,0 +1,3 @@
+resources:
+  - react-deployment.yaml
+  - react-service.yaml
