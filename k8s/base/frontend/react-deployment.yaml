@@ -15,4 +15,5 @@ spec:
     spec:
       containers:
       - name: frontend-container
-        image: yaseenhamdii/reactapp:v1
+        image: yaseenhamdii/reactapp:v8
+        imagePullPolicy: Always
