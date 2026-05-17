@@ -12,3 +12,12 @@ patches:
   - path: flask-deployment-patch.yaml
   - path: react-deployment-patch.yaml
   - path: db-stateful-patch.yaml
+
+  - target:
+      kind: Ingress
+      name: ingress
+
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: app.prod

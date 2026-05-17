@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: backend-container
-          image: yaseenhamdii/flaskapp:v1
+          image: yaseenhamdii/flaskapp:v2
 
           ports:
             - containerPort: 5000
