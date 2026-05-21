@@ -3,3 +3,5 @@ resources:
     - frontend/
     - database/
     - ingress.yaml
+    - external-secrets.yaml
+
