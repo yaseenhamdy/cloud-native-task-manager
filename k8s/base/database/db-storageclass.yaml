@@ -1,10 +1,11 @@
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: db-storageclass
+  name: ebs-aws
 
-provisioner: k8s.io/minikube-hostpath
-reclaimPolicy: Retain 
+provisioner: ebs.csi.aws.com
 
 volumeBindingMode: Immediate
 
+parameters:
+  type: gp3
