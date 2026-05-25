@@ -1,0 +1,7 @@
+resources:
+    - backend/
+    - frontend/
+    - database/
+    - ingress.yaml
+    - external-secrets.yaml
+

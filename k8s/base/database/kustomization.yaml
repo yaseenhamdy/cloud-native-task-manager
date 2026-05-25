@@ -1,0 +1,4 @@
+resources:
+  - db-stateful.yaml
+  - db-storageclass.yaml
+  - db-service.yaml

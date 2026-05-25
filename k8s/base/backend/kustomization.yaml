@@ -1,0 +1,3 @@
+resources:
+  - flask-deployment.yaml
+  - flask-service.yaml
