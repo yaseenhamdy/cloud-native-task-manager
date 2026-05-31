@@ -1,0 +1,78 @@
+[
+    [
+        {
+            "IpProtocol": "tcp",
+            "FromPort": 9443,
+            "ToPort": 9443,
+            "UserIdGroupPairs": [
+                {
+                    "UserId": "171558409860",
+                    "GroupId": "sg-0352947bb57aeeb37"
+                }
+            ],
+            "IpRanges": [],
+            "Ipv6Ranges": [],
+            "PrefixListIds": []
+        },
+        {
+            "IpProtocol": "tcp",
+            "FromPort": 10250,
+            "ToPort": 10250,
+            "UserIdGroupPairs": [
+                {
+                    "Description": "Cluster API to node kubelets",
+                    "UserId": "171558409860",
+                    "GroupId": "sg-0b704f639b9fc2df5"
+                }
+            ],
+            "IpRanges": [],
+            "Ipv6Ranges": [],
+            "PrefixListIds": []
+        },
+        {
+            "IpProtocol": "udp",
+            "FromPort": 53,
+            "ToPort": 53,
+            "UserIdGroupPairs": [
+                {
+                    "Description": "Node to node CoreDNS",
+                    "UserId": "171558409860",
+                    "GroupId": "sg-0352947bb57aeeb37"
+                }
+            ],
+            "IpRanges": [],
+            "Ipv6Ranges": [],
+            "PrefixListIds": []
+        },
+        {
+            "IpProtocol": "tcp",
+            "FromPort": 53,
+            "ToPort": 53,
+            "UserIdGroupPairs": [
+                {
+                    "Description": "Node to node CoreDNS",
+                    "UserId": "171558409860",
+                    "GroupId": "sg-0352947bb57aeeb37"
+                }
+            ],
+            "IpRanges": [],
+            "Ipv6Ranges": [],
+            "PrefixListIds": []
+        },
+        {
+            "IpProtocol": "tcp",
+            "FromPort": 443,
+            "ToPort": 443,
+            "UserIdGroupPairs": [
+                {
+                    "Description": "Cluster API to node groups",
+                    "UserId": "171558409860",
+                    "GroupId": "sg-0b704f639b9fc2df5"
+                }
+            ],
+            "IpRanges": [],
+            "Ipv6Ranges": [],
+            "PrefixListIds": []
+        }
+    ]
+]

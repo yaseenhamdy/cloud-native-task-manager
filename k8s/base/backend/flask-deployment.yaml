@@ -5,7 +5,7 @@ metadata:
   name: flask-deployment
 
 spec:
-  replicas: 1
+  replicas: 3
 
   selector:
     matchLabels:
@@ -17,9 +17,22 @@ spec:
         app: backend
 
     spec:
+      initContainers:
+        - name: wait-for-postgres
+          image: postgres:15
+          command:
+          - sh
+          - -c
+          - |
+            until pg_isready -h postgres-service -p 5432
+            do
+              echo "Waiting for postgres..."
+              sleep 5
+            done
+            
       containers:
         - name: backend-container
-          image: yaseenhamdii/flaskapp:v2
+          image: yaseenhamdii/flaskapp:v3    
 
           ports:
             - containerPort: 5000
@@ -30,3 +43,17 @@ spec:
                 secretKeyRef:
                   name: db-secrets
                   key: DATABASE_URL
+
+          readinessProbe:
+            httpGet:
+              path: /health/simple
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+          livenessProbe:
+            httpGet:
+              path: /health/simple
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10

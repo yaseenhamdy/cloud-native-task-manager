@@ -4,35 +4,30 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_swagger_ui import get_swaggerui_blueprint
 import os
+import time
 from dotenv import load_dotenv
 
-# Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
-# Swagger configuration
 SWAGGER_URL = '/api/docs'
 API_URL = '/static/swagger.json'
 
 swaggerui_blueprint = get_swaggerui_blueprint(
     SWAGGER_URL,
     API_URL,
-    config={
-        'app_name': "Task Manager API"
-    }
+    config={'app_name': "Task Manager API"}
 )
 app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
-# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@localhost:5432/microservices_db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# Sample model
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
@@ -51,7 +46,6 @@ class Task(db.Model):
             'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
 
-# Error handlers
 @app.errorhandler(404)
 def not_found(error):
     return jsonify({'error': 'Not found'}), 404
@@ -61,7 +55,6 @@ def internal_error(error):
     db.session.rollback()
     return jsonify({'error': 'Internal server error'}), 500
 
-# Routes
 @app.route('/api/tasks', methods=['GET'])
 def get_tasks():
     try:
@@ -94,14 +87,11 @@ def update_task(task_id):
     try:
         task = Task.query.get_or_404(task_id)
         data = request.get_json()
-
         if not data:
             return jsonify({'error': 'No data provided'}), 400
-
         task.title = data.get('title', task.title)
         task.description = data.get('description', task.description)
         task.completed = data.get('completed', task.completed)
-
         db.session.commit()
         return jsonify(task.to_dict())
     except Exception as e:
@@ -122,7 +112,6 @@ def delete_task(task_id):
 @app.route('/health')
 def health_check():
     try:
-        # Check database connection
         db.session.execute('SELECT 1')
         return jsonify({
             'status': 'healthy',
@@ -134,16 +123,23 @@ def health_check():
             'status': 'unhealthy',
             'error': str(e)
         }), 500
-        
-        
+
 @app.route('/health/simple')
 def health_check_simple():
-    return jsonify({
-        'status': 'ok'
-    }), 200
+    return jsonify({'status': 'ok'}), 200
 
+# Retry logic for db.create_all()
 with app.app_context():
-    db.create_all()
+    retries = 10
+    while retries > 0:
+        try:
+            db.create_all()
+            print("✅ Database connected and tables created")
+            break
+        except Exception as e:
+            retries -= 1
+            print(f"⏳ Waiting for database... ({retries} retries left): {e}")
+            time.sleep(5)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
