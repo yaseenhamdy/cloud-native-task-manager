@@ -7,7 +7,7 @@ resource "helm_release" "alb_chart" {
 
   set {
     name  = "clusterName"
-    value = data.aws_eks_cluster.this.name
+    value = var.cluster_name
   }
 
   set {

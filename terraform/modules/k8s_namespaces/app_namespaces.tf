@@ -12,6 +12,6 @@ resource "kubernetes_namespace" "test_namespace" {
 
 resource "kubernetes_namespace" "prod_namespace" {
   metadata {
-    name = "prode"
+    name = "prod"
   }
 }
