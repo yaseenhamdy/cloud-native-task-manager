@@ -1,6 +1,6 @@
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 18.0"
+  version = "~> 20.0"
 
   cluster_name    = var.cluster_name
   cluster_version = var.kubernetes_version
@@ -8,18 +8,23 @@ module "eks" {
   vpc_id     = var.vpc_id
   subnet_ids = var.private_subnet_ids
 
-  enable_irsa = true
+  enable_cluster_creator_admin_permissions = true
 
-  iam_role_name = "${var.cluster_name}-cluster-role"  
+
+  enable_irsa = true
+  authentication_mode = "API_AND_CONFIG_MAP"
+
+
+  iam_role_name = "${var.cluster_name}-cluster-role"
 
   eks_managed_node_groups = {
     default = {
-      instance_types = ["t3.medium"]
-      min_size       = 5
-      max_size       = 7
-      desired_size   = 6
-
-      iam_role_name = "${var.cluster_name}-node-role"  
+      instance_types           = ["t3.medium"]
+      min_size                 = 5
+      max_size                 = 7
+      desired_size             = 6
+      iam_role_name            = "${var.cluster_name}-node-role"
+      iam_role_attach_cni_policy = true
     }
   }
 

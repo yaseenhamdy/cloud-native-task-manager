@@ -24,21 +24,14 @@ module "eks" {
   depends_on = [module.secret_manager, module.vpc]
 }
 
-module "app_namespaces" {
-  source = "../../modules/k8s_namespaces"
-  depends_on = [ module.eks ]
-}
 
 module "irsa" {
 
   source = "../../modules/IRSA"
 
   oidc_provider_arn = module.eks.oidc_provider_arn
-}
 
-module "helm_charts" {
-  source     = "../../modules/Helm-Charts"
-  depends_on = [module.eks]
+  depends_on = [ module.eks ]
 }
 
 module "service_accounts" {
@@ -46,6 +39,19 @@ module "service_accounts" {
   alb_role_arn = module.irsa.alb_controller_role_arn
   eso_role_arn = module.irsa.external_secrets_role_arn
 
-  depends_on = [ module.irsa ]
+  depends_on = [ module.irsa , module.eks ]
 
+}
+
+module "helm_charts" {
+  source     = "../../modules/Helm-Charts"
+  depends_on = [module.eks , module.service_accounts]
+
+  cluster_name = module.eks.cluster_name
+}
+
+
+module "app_namespaces" {
+  source = "../../modules/k8s_namespaces"
+  depends_on = [ module.eks ]
 }
