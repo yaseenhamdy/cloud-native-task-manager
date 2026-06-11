@@ -8,6 +8,7 @@ module "secret_manager" {
   source = "../../modules/secret-manager"
 }
 
+
 module "eks" {
 
   source = "../../modules/EKS"
@@ -24,6 +25,19 @@ module "eks" {
   depends_on = [module.secret_manager, module.vpc]
 }
 
+module "bastion_host" {
+  source = "../../modules/jump_host"
+
+  vpc_id = module.vpc.vpc_id
+
+  subnet_id = module.vpc.public_subnet_ids[0]
+
+  machine_public_IP = var.machine_public_IP
+
+  eks_cluster_name = module.eks.cluster_name
+
+  depends_on = [ module.eks ]
+}
 
 module "irsa" {
 
