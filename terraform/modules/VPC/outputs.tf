@@ -13,3 +13,4 @@ output "private_subnet_ids" {
     for subnet in aws_subnet.private_subnet : subnet.id
   ]
 }
+
