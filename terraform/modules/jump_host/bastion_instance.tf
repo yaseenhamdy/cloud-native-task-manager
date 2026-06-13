@@ -36,9 +36,15 @@ resource "aws_instance" "bastion_host" {
   curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
   unzip awscliv2.zip
   sudo ./aws/install
+ 
 
-  # Configure kubectl
-  aws eks update-kubeconfig --name ${var.eks_cluster_name} --region us-east-1
+ # git installation
+  sudo dnf install -y git
+
+ # clone the repo 
+  git clone https://github.com/yaseenhamdy/cloud-native-task-manager.git /home/ec2-user/cloud-native-task-manager
+  chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
+
 EOF
 
   iam_instance_profile = aws_iam_instance_profile.bastion_role_profile.name

@@ -36,7 +36,23 @@ module "bastion_host" {
 
   eks_cluster_name = module.eks.cluster_name
 
-  depends_on = [ module.eks ]
+  depends_on = [module.eks]
+}
+
+
+module "bastion_integrations" {
+
+  source = "../../modules/bastion_integrations"
+
+  cluster_name = module.eks.cluster_name
+
+  bastion_role_arn = module.bastion_host.bastion_role_arn
+
+  bastion_SG_ID = module.bastion_host.bastion_SG_ID
+
+  node_SG_ID = module.eks.node_SG_ID
+
+  depends_on = [module.bastion_host, module.eks]
 }
 
 module "irsa" {
@@ -45,7 +61,7 @@ module "irsa" {
 
   oidc_provider_arn = module.eks.oidc_provider_arn
 
-  depends_on = [ module.eks ]
+  depends_on = [module.eks]
 }
 
 module "service_accounts" {
@@ -53,19 +69,19 @@ module "service_accounts" {
   alb_role_arn = module.irsa.alb_controller_role_arn
   eso_role_arn = module.irsa.external_secrets_role_arn
 
-  depends_on = [ module.irsa , module.eks ]
+  depends_on = [module.irsa, module.eks]
 
 }
 
 module "helm_charts" {
   source     = "../../modules/Helm-Charts"
-  depends_on = [module.eks , module.service_accounts]
+  depends_on = [module.eks, module.service_accounts]
 
   cluster_name = module.eks.cluster_name
 }
 
 
 module "app_namespaces" {
-  source = "../../modules/k8s_namespaces"
-  depends_on = [ module.eks ]
+  source     = "../../modules/k8s_namespaces"
+  depends_on = [module.eks]
 }
