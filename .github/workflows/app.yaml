@@ -27,7 +27,7 @@ jobs:
 
       - name: Unit tests
         working-directory: ./backend
-        run: pytest   
+        run: pytest
 
   frontend-testing:
     runs-on: ubuntu-latest
@@ -38,20 +38,76 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-         node-version: "18"
+          node-version: "18"
 
       - name: install dependencies
         working-directory: ./frontend
         run: |
-          npm ci 
+          npm ci
 
       - name: Lint testing
         working-directory: ./frontend
         run: npm run lint
-          
 
       - name: Unit tests
         working-directory: ./frontend
-        run: npm test    
+        run: npm test
         env:
-         CI: true
+          CI: true
+
+  frontend-build:
+    needs: frontend-testing
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Docker Hub Login
+        run: |
+          docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
+
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: frontend build
+        working-directory: ./frontend
+        run: docker build -t yaseenhamdii/reactapp:v8  .
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: yaseenhamdii/reactapp:v8
+          severity: "HIGH,CRITICAL"
+          exit-code: "1"
+
+      - name: Push frontend image
+        run: |
+          docker push yaseenhamdii/reactapp:v8
+
+
+
+  backend-build:
+    needs: backend-testing
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Docker Hub Login
+        run: |
+          docker login -u ${{secrets.DOCKERHUB_USERNAME}} -p ${{secrets.DOCKERHUB_TOKEN}}
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: backend build
+        working-directory: ./backend
+        run: docker build -t yaseenhamdii/flaskapp:v3 .
+
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: yaseenhamdii/flaskapp:v3
+          severity: "HIGH,CRITICAL"
+          exit-code: "1"
+
+      - name: Push backend image
+        run: |
+          docker push yaseenhamdii/flaskapp:v3          
