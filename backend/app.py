@@ -162,4 +162,4 @@ if __name__ == '__main__':
                 print(f"Waiting for database... ({retries} retries left): {e}")
                 time.sleep(5)
 
-    app.run(host='0.0.0.0', port=5000, debug=True)
+app.run(host='0.0.0.0', port=5000, debug=True)
