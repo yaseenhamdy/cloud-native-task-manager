@@ -74,7 +74,7 @@ jobs:
         run: docker build -t yaseenhamdii/reactapp:v8  .
 
       - name: Scan frontend image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: yaseenhamdii/reactapp:v8
           severity: "HIGH,CRITICAL"
@@ -103,7 +103,7 @@ jobs:
         run: docker build -t yaseenhamdii/flaskapp:v3 .
 
       - name: Scan backend image
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@master
         with:
           image-ref: yaseenhamdii/flaskapp:v3
           severity: "HIGH,CRITICAL"
