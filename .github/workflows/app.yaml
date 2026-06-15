@@ -1,0 +1,57 @@
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  backend-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: install dependencies
+        working-directory: ./backend
+        run: |
+          pip install --no-cache-dir -r requirements.txt
+
+      - name: Lint testing
+        working-directory: ./backend
+        run: flake8 .
+
+      - name: Unit tests
+        working-directory: ./backend
+        run: pytest   
+
+  frontend-testing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+         node-version: "18"
+
+      - name: install dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci 
+
+      - name: Lint testing
+        working-directory: ./frontend
+        run: npm run lint
+          
+
+      - name: Unit tests
+        working-directory: ./frontend
+        run: npm test    
+        env:
+         CI: true
