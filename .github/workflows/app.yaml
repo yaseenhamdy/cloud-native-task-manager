@@ -43,7 +43,7 @@ jobs:
       - name: install dependencies
         working-directory: ./frontend
         run: |
-          npm ci
+          npm i
 
       - name: Lint testing
         working-directory: ./frontend
