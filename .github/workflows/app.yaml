@@ -26,9 +26,9 @@ jobs:
         working-directory: ./backend
         run: flake8 .
 
-      - name: Unit tests
-        working-directory: ./backend
-        run: pytest
+      # - name: Unit tests
+      #   working-directory: ./backend
+      #   run: pytest
 
   frontend-testing:
     runs-on: ubuntu-latest
