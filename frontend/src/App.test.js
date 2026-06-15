@@ -39,6 +39,9 @@ describe('App Component - Task Manager', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Learn React Testing')).toBeInTheDocument();
+    });
+    
+    await waitFor(() => {
       expect(screen.getByText('Write Unit Tests')).toBeInTheDocument();
     });
 
@@ -68,7 +71,13 @@ describe('App Component - Task Manager', () => {
         title: 'New Task',
         description: 'New Desc',
       });
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Task created successfully!')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('New Task')).toBeInTheDocument();
     });
   });
@@ -121,6 +130,9 @@ describe('App Component - Task Manager', () => {
         title: 'Updated Title',
         description: 'Study Jest and RTL',
       });
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Task updated successfully!')).toBeInTheDocument();
     });
   });
@@ -145,6 +157,9 @@ describe('App Component - Task Manager', () => {
 
     await waitFor(() => {
       expect(axios.delete).toHaveBeenCalledWith(`/api/tasks/1`);
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Task deleted successfully!')).toBeInTheDocument();
     });
   });
