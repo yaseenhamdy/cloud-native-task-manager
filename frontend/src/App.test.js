@@ -29,13 +29,17 @@ describe('App Component - Task Manager', () => {
     jest.clearAllMocks();
   });
 
+  /* eslint-disable testing-library/no-wait-for-multiple-assertions */
+
   test('1. Fetches and renders tasks on mount', async () => {
     axios.get.mockResolvedValueOnce({ data: mockTasks });
     
     render(<App />);
 
     expect(screen.getByText('Task Manager')).toBeInTheDocument();
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    
+    // FIX: Use getAllByRole because there are multiple progressbars
+    expect(screen.getAllByRole('progressbar')[0]).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('Learn React Testing')).toBeInTheDocument();
@@ -56,15 +60,15 @@ describe('App Component - Task Manager', () => {
       data: [{ id: 3, title: 'New Task', description: 'New Desc', completed: false, created_at: '2023-10-03T12:00:00Z' }] 
     });
 
-    const user = userEvent.setup();
     render(<App />);
 
-    await waitFor(() => expect(screen.queryByRole('progressbar')).not.toBeInTheDocument());
+    // FIX: Check that the array of progressbars is empty
+    await waitFor(() => expect(screen.queryAllByRole('progressbar').length).toBe(0));
 
-    await user.type(screen.getByLabelText(/Task Title/i), 'New Task');
-    await user.type(screen.getByLabelText(/Description/i), 'New Desc');
-
-    await user.click(screen.getByRole('button', { name: /Add Task/i }));
+    // FIX: Use direct userEvent calls without setup()
+    userEvent.type(screen.getByLabelText(/Task Title/i), 'New Task');
+    userEvent.type(screen.getByLabelText(/Description/i), 'New Desc');
+    userEvent.click(screen.getByRole('button', { name: /Add Task/i }));
 
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith('/api/tasks', {
@@ -109,7 +113,6 @@ describe('App Component - Task Manager', () => {
       data: [{ ...mockTasks[0], title: 'Updated Title' }] 
     });
 
-    const user = userEvent.setup();
     render(<App />);
 
     await screen.findByText('Learn React Testing');
@@ -120,10 +123,10 @@ describe('App Component - Task Manager', () => {
     const titleInput = screen.getByLabelText(/Task Title/i);
     expect(titleInput.value).toBe('Learn React Testing');
 
-    await user.clear(titleInput);
-    await user.type(titleInput, 'Updated Title');
-
-    await user.click(screen.getByRole('button', { name: /Update Task/i }));
+    // FIX: Use direct userEvent calls without setup()
+    userEvent.clear(titleInput);
+    userEvent.type(titleInput, 'Updated Title');
+    userEvent.click(screen.getByRole('button', { name: /Update Task/i }));
 
     await waitFor(() => {
       expect(axios.put).toHaveBeenCalledWith(`/api/tasks/1`, {

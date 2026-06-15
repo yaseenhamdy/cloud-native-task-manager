@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - main
-      - feature/CI-CD-Pipeline
+      - feature/CI-CD-Pipleine
   workflow_dispatch:
 
 jobs:
