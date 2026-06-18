@@ -22,7 +22,7 @@ terraform {
 
 
 provider "aws" {
-  profile = "yaseenhamdy"
+  # profile = "yaseenhamdy"
   region  = "us-east-1"
 }
 
@@ -40,7 +40,7 @@ provider "helm" {
         "eks", "get-token",
         "--cluster-name", data.aws_eks_cluster.this.name,
         "--region", "us-east-1",
-        "--profile", "yaseenhamdy"
+        # "--profile", "yaseenhamdy"
       ]
     }
   }
@@ -57,7 +57,7 @@ provider "kubernetes" {
       "eks", "get-token",
       "--cluster-name", data.aws_eks_cluster.this.name,
       "--region", "us-east-1",
-      "--profile", "yaseenhamdy"
+      # "--profile", "yaseenhamdy"
     ]
   }
 }
