@@ -1,8 +1,12 @@
 on:
   push:
+    paths:
+      - 'frontend/**'
+      - 'backend/**'
+      - 'k8s/**'
     branches:
       - main
-      - feature/CI-CD-Pipleine
+      - feature/CI-CD-Pipeline
   workflow_dispatch:
 
 jobs:
