@@ -106,7 +106,7 @@ jobs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
-        
+
     - name: Terraform Setup action
       uses: ./.github/actions/terraform-setup
       with:
