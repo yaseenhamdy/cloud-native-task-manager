@@ -34,7 +34,9 @@ module "bastion_host" {
 
   machine_public_IP = var.machine_public_IP
 
-  eks_cluster_name = module.eks.cluster_name
+  eks_cluster_name   = module.eks.cluster_name
+  
+  bastion_public_key = var.bastion_public_key
 
   depends_on = [module.eks]
 }
