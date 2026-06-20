@@ -47,10 +47,15 @@ chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
 # configure EKS cluster
 aws eks update-kubeconfig \
   --name tasker-app \
-  --region us-east-1 
-  
+  --region us-east-1 \
+
+#create a copy for ec2-user's convenience
+mkdir -p /home/ec2-user/.kube
+cp /root/.kube/config /home/ec2-user/.kube/config
+chown ec2-user:ec2-user /home/ec2-user/.kube/config
+
 # apply the manifests
-cd cloud-native-task-manager/k8s
+cd /home/ec2-user/cloud-native-task-manager/k8s
 kubectl apply -f infra/
 kubectl apply -k overlays/test
 
