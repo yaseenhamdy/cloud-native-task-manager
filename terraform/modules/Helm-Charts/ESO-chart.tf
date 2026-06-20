@@ -4,7 +4,6 @@ resource "helm_release" "eso_chart" {
   chart            = "external-secrets"
   namespace        = "external-secrets"
   create_namespace = true
-  wait = true
 
 
 
