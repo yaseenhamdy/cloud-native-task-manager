@@ -4,7 +4,7 @@ on:
 env:
   AWS_REGION: us-east-1
   TF_VAR_machine_public_IP: ${{secrets.MACHINE_PUBLIC_IP}}
-  
+  TF_VAR_bastion_public_key: ${{ secrets.BASTION_PUBLIC_KEY }}
 
 jobs:
  terraform-entire-destroy:
@@ -23,7 +23,7 @@ jobs:
     - name: terraform init
       working-directory: ./terraform/environments/dev
       run: terraform init   
-      
+
     - name: terraform entire destroy
       working-directory: ./terraform/environments/dev
       run: terraform destroy -auto-approve 
