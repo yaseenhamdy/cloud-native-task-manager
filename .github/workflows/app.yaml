@@ -3,7 +3,6 @@ on:
     paths:
       - 'frontend/**'
       - 'backend/**'
-      - 'k8s/**'
     branches:
       - main
       - feature/CI-CD-Pipeline
