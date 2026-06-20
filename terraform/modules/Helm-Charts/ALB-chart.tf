@@ -4,6 +4,8 @@ resource "helm_release" "alb_chart" {
   chart            = "aws-load-balancer-controller"
   namespace        = "kube-system"
   create_namespace = false
+  wait             = true
+
 
   set {
     name  = "clusterName"

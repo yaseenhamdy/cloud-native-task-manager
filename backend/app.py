@@ -149,17 +149,18 @@ def health_check_simple():
     return jsonify({'status': 'ok'}), 200
 
 
-if __name__ == '__main__':
-    with app.app_context():
-        retries = 10
-        while retries > 0:
-            try:
-                db.create_all()
-                print("Database connected and tables created")
-                break
-            except Exception as e:
-                retries -= 1
-                print(f"Waiting for database... ({retries} retries left): {e}")
-                time.sleep(5)
+with app.app_context():
+    retries = 10
+    while retries > 0:
+        try:
+            db.create_all()
+            print("Database connected and tables created")
+            break
+        except Exception as e:
+            retries -= 1
+            print(f"Waiting for database... ({retries} retries left): {e}")
+            time.sleep(5)
 
+
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

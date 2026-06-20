@@ -25,25 +25,40 @@ resource "aws_instance" "bastion_host" {
   associate_public_ip_address = true
 
   user_data = <<-EOF
-  #!/bin/bash
-  
-  # Install kubectl
-  curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.33.10/2026-04-08/bin/linux/amd64/kubectl
-  chmod +x ./kubectl
-  mkdir -p /usr/local/bin && mv ./kubectl /usr/local/bin/kubectl
+#!/bin/bash
 
-  # Install AWS CLI
-  curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-  unzip awscliv2.zip
-  sudo ./aws/install
+# Install kubectl
+curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.33.10/2026-04-08/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+mkdir -p /usr/local/bin && mv ./kubectl /usr/local/bin/kubectl
+
+# Install AWS CLI
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
  
+# git installation
+sudo dnf install -y git
 
- # git installation
-  sudo dnf install -y git
+# clone the repo 
+git clone https://github.com/yaseenhamdy/cloud-native-task-manager.git /home/ec2-user/cloud-native-task-manager
+chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
 
- # clone the repo 
-  git clone https://github.com/yaseenhamdy/cloud-native-task-manager.git /home/ec2-user/cloud-native-task-manager
-  chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
+# configure EKS cluster
+aws eks update-kubeconfig \
+  --name tasker-app \
+  --region us-east-1 \
+
+#create a copy for ec2-user's convenience
+mkdir -p /home/ec2-user/.kube
+cp /root/.kube/config /home/ec2-user/.kube/config
+chown ec2-user:ec2-user /home/ec2-user/.kube/config
+
+# apply the manifests
+cd /home/ec2-user/cloud-native-task-manager/k8s
+kubectl apply -f infra/
+kubectl apply -k overlays/test
+
 
 EOF
 

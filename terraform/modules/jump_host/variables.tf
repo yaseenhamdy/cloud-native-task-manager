@@ -13,3 +13,7 @@ variable "machine_public_IP" {
 variable "eks_cluster_name" {
   type = string
 }
+
+variable "bastion_public_key" {
+  type = string
+}

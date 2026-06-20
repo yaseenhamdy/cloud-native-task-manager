@@ -16,4 +16,5 @@ resource "helm_release" "eso_chart" {
     name  = "serviceAccount.name"
     value = "external-secrets-sa"
   }
+  depends_on = [ helm_release.alb_chart ]
 }

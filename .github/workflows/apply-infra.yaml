@@ -10,6 +10,7 @@ on:
 env:
   AWS_REGION: us-east-1
   TF_VAR_machine_public_IP: ${{secrets.MACHINE_PUBLIC_IP}}
+  TF_VAR_bastion_public_key: ${{ secrets.BASTION_PUBLIC_KEY }}
 
 jobs:
 #  provision-infra:
@@ -45,11 +46,11 @@ jobs:
    
 
     - name: terraform init
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform init       
 
     - name: terraform apply (stage 1)
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform apply -auto-approve -target=module.vpc -target=module.secret_manager
 
  aws-secret:
@@ -93,11 +94,11 @@ jobs:
        aws-region: ${{ env.AWS_REGION }}       
 
     - name: terraform init
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform init      
 
     - name: terraform apply (stage 2)
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform apply -auto-approve -target=module.eks -target=module.irsa 
 
  terraform-final-stage:
@@ -116,11 +117,11 @@ jobs:
        
 
     - name: terraform init
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform init            
 
     - name: terraform entire apply 
-      working-directory: ./terraform
+      working-directory: ./terraform/environments/dev
       run: terraform apply -auto-approve 
 
   
