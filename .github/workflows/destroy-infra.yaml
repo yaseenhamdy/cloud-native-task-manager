@@ -12,7 +12,7 @@ jobs:
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
-        
+
     - name: Terraform Setup action
       uses: ./.github/actions/terraform-setup
       with:
@@ -20,6 +20,10 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }} 
 
+    - name: terraform init
+      working-directory: ./terraform/environments/dev
+      run: terraform init   
+      
     - name: terraform entire destroy
       working-directory: ./terraform/environments/dev
       run: terraform destroy -auto-approve 
