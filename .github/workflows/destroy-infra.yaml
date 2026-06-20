@@ -1,0 +1,22 @@
+on:
+ workflow_dispatch:
+
+env:
+  AWS_REGION: us-east-1
+  TF_VAR_machine_public_IP: ${{secrets.MACHINE_PUBLIC_IP}}
+
+jobs:
+ terraform-entire-destroy:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }} 
+
+    - name: terraform entire destroy
+      working-directory: ./terraform
+      run: terraform destroy -auto-approve 
+
