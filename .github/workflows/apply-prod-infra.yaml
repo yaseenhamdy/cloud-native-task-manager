@@ -62,13 +62,13 @@ jobs:
        aws-region: ${{ env.AWS_REGION }}       
    
 
-    - name: terraform init dev-test env
-      working-directory: ./terraform/environments/dev-test
+    - name: terraform init prod env
+      working-directory: ./terraform/environments/prod
       run: terraform init       
 
 
-    - name: terraform apply dev-test env (stage 2)
-      working-directory: ./terraform/environments/dev-test
+    - name: terraform apply prod env (stage 2)
+      working-directory: ./terraform/environments/prod
       run: terraform apply -auto-approve -target=module.eks -target=module.irsa -var-file=main.tfvars
             
 

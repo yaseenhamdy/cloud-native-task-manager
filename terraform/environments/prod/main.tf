@@ -7,6 +7,8 @@ module "vpc" {
   public_subnet_azs    = var.public_subnet_azs
   private_subnet_cidrs = var.private_subnet_cidrs
   private_subnet_azs   = var.private_subnet_azs
+  cluster_name         = module.eks.cluster_name
+
 }
 
 
@@ -35,14 +37,14 @@ module "bastion_host" {
 
   subnet_id = module.vpc.public_subnet_ids[0]
 
-  k8s_namespaces    = var.k8s_namespaces
+  k8s_namespaces = var.k8s_namespaces
 
   machine_public_IP = var.machine_public_IP
 
   eks_cluster_name = module.eks.cluster_name
 
   bastion_public_key = var.bastion_public_key
-  
+
   environment = "prod"
 
   depends_on = [module.eks]
