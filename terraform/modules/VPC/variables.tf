@@ -34,3 +34,7 @@ variable "private_to_public_nat_mapping" {
     private_2 = "public_2"
   }
 }
+
+variable "cluster_name" {
+  type = string
+}
