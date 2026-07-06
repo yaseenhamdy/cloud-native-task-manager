@@ -46,7 +46,7 @@ jobs:
 
     - name: terraform apply prod env (stage 1)
       working-directory: ./terraform/environments/prod
-      run: terraform apply -auto-approve -target=module.vpc
+      run: terraform apply -auto-approve -target=module.vpc -var-file=main.tfvars
 
  terraform-final-stage:
 
@@ -71,7 +71,7 @@ jobs:
 
     - name: terraform entire apply 
       working-directory: ./terraform/environments/prod
-      run: terraform apply -auto-approve 
+      run: terraform apply -auto-approve -var-file=main.tfvars
 
   
     
