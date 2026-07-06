@@ -24,8 +24,6 @@ env:
 jobs:
 
  terraform-stage-1:
-
-
   runs-on: ubuntu-latest
   steps:
     - name: Checkout code
