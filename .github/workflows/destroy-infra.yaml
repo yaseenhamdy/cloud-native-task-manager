@@ -7,7 +7,8 @@ env:
   TF_VAR_bastion_public_key: ${{ secrets.BASTION_PUBLIC_KEY }}
 
 jobs:
- terraform-entire-destroy:
+
+ terraform-shared-destroy:
   runs-on: ubuntu-latest
   steps:
     - name: Checkout code
@@ -21,10 +22,51 @@ jobs:
        aws-region: ${{ env.AWS_REGION }} 
 
     - name: terraform init
-      working-directory: ./terraform/environments/dev
+      working-directory: ./terraform/environments/shared
       run: terraform init   
 
     - name: terraform entire destroy
-      working-directory: ./terraform/environments/dev
+      working-directory: ./terraform/environments/shared
       run: terraform destroy -auto-approve 
 
+ terraform-dev-test-destroy:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }} 
+
+    - name: terraform init
+      working-directory: ./terraform/environments/dev-test
+      run: terraform init   
+
+    - name: terraform entire destroy
+      working-directory: ./terraform/environments/dev-test
+      run: terraform destroy -auto-approve -var-file=main.tfvars
+
+ terraform-prod-destroy:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }} 
+
+    - name: terraform init
+      working-directory: ./terraform/environments/prod
+      run: terraform init   
+
+    - name: terraform entire destroy
+      working-directory: ./terraform/environments/prod
+      run: terraform destroy -auto-approve -var-file=main.tfvars
