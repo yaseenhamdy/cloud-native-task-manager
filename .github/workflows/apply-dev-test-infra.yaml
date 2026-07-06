@@ -76,7 +76,7 @@ jobs:
       
  terraform-final-stage:
   runs-on: ubuntu-latest
-  needs: terraform-stage-1
+  needs: terraform-stage-2
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
