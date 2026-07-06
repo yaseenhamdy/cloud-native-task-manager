@@ -47,7 +47,7 @@ jobs:
 
     - name: terraform apply dev-test env (stage 1)
       working-directory: ./terraform/environments/dev-test
-      run: terraform apply -auto-approve -target=module.vpc 
+      run: terraform apply -auto-approve -target=module.vpc -var-file=main.tfvars
 
  terraform-final-stage:
   if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
@@ -71,7 +71,7 @@ jobs:
 
     - name: terraform entire apply 
       working-directory: ./terraform/environments/dev-test
-      run: terraform apply -auto-approve 
+      run: terraform apply -auto-approve -var-file=main.tfvars
 
   
     
