@@ -1,5 +1,5 @@
 resource "aws_iam_role" "bastion_role" {
-  name = "bastion_role"
+  name = "bastion_role-${var.environment}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -16,6 +16,6 @@ resource "aws_iam_role" "bastion_role" {
   })
 
   tags = {
-    tag-key = "bastion_role"
+    tag-key = "bastion_role-${var.environment}"
   }
 }

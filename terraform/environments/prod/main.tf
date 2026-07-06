@@ -1,11 +1,12 @@
 module "vpc" {
 
   source = "../../modules/VPC"
-}
 
-module "secret_manager" {
-
-  source = "../../modules/secret-manager"
+  vpc_cidr             = var.vpc_cidr
+  public_subnet_cidrs  = var.public_subnet_cidrs
+  public_subnet_azs    = var.public_subnet_azs
+  private_subnet_cidrs = var.private_subnet_cidrs
+  private_subnet_azs   = var.private_subnet_azs
 }
 
 
@@ -15,28 +16,34 @@ module "eks" {
 
   vpc_id = module.vpc.vpc_id
 
-  cluster_name = "tasker-app"
+  cluster_name = var.cluster_name
 
   kubernetes_version = "1.33"
 
 
   private_subnet_ids = module.vpc.private_subnet_ids
 
-  depends_on = [module.secret_manager, module.vpc]
+  depends_on = [module.vpc]
 }
 
 module "bastion_host" {
   source = "../../modules/jump_host"
 
+  bastion_name = "prod-bastion"
+
   vpc_id = module.vpc.vpc_id
 
   subnet_id = module.vpc.public_subnet_ids[0]
 
+  k8s_namespaces    = var.k8s_namespaces
+
   machine_public_IP = var.machine_public_IP
 
-  eks_cluster_name   = module.eks.cluster_name
-  
+  eks_cluster_name = module.eks.cluster_name
+
   bastion_public_key = var.bastion_public_key
+  
+  environment = "prod"
 
   depends_on = [module.eks]
 }
@@ -63,6 +70,8 @@ module "irsa" {
 
   oidc_provider_arn = module.eks.oidc_provider_arn
 
+  environment = "prod"
+
   depends_on = [module.eks]
 }
 
@@ -84,6 +93,7 @@ module "helm_charts" {
 
 
 module "app_namespaces" {
-  source     = "../../modules/k8s_namespaces"
-  depends_on = [module.eks]
+  source         = "../../modules/k8s_namespaces"
+  k8s_namespaces = var.k8s_namespaces
+  depends_on     = [module.eks]
 }

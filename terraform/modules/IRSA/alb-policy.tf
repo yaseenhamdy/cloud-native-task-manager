@@ -4,6 +4,6 @@ data "http" "alb_controller_policy" {
 
 
 resource "aws_iam_policy" "alb_controller_policy" {
-  name   = "AWSLoadBalancerControllerPolicy"
+  name   = "AWSLoadBalancerControllerPolicy-${var.environment}"
   policy = data.http.alb_controller_policy.response_body
 }

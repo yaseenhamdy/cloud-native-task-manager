@@ -4,7 +4,7 @@ module "alb_controller_irsa_role" {
 
   version = "5.39.0"
 
-  role_name = "alb-controller-role"
+  role_name = "alb-controller-role-${var.environment}"
 
   oidc_providers = {
 

@@ -1,3 +1,6 @@
+variable "bastion_name" {
+  type = string
+}
 variable "vpc_id" {
   type = string
 }
@@ -15,5 +18,13 @@ variable "eks_cluster_name" {
 }
 
 variable "bastion_public_key" {
+  type = string
+}
+
+variable "k8s_namespaces" {
+  type = map(string)  
+}
+
+variable "environment" {
   type = string
 }

@@ -1,5 +1,5 @@
 resource "aws_iam_role_policy" "bastion_policy" {
-  name = "bastion_policy"
+  name = "bastion_policy-${var.environment}"
   role = aws_iam_role.bastion_role.id
 
   policy = jsonencode({

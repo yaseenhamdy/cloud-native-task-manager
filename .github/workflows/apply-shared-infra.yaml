@@ -1,0 +1,68 @@
+name: shared-infra
+on: 
+  push:
+   paths:
+     - 'terraform/**'
+   branches:
+     - main
+     - feature/multi-eks-cluster
+  workflow_dispatch:
+  
+
+env:
+  AWS_REGION: us-east-1
+  TF_VAR_machine_public_IP: ${{secrets.MACHINE_PUBLIC_IP}}
+  TF_VAR_bastion_public_key: ${{ secrets.BASTION_PUBLIC_KEY }}
+
+jobs:
+
+ terraform-apply-shared:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}       
+   
+
+    - name: terraform init shared env
+      working-directory: ./terraform/environments/shared
+      run: terraform init       
+
+
+    - name: terraform apply shared env 
+      working-directory: ./terraform/environments/shared
+      run: terraform apply -auto-approve 
+
+
+ aws-secret:
+  runs-on: ubuntu-latest
+  needs: terraform-apply-shared
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{env.AWS_REGION}}      
+
+    - name: Put AWS secrets
+      run: |
+        aws secretsmanager put-secret-value \
+        --secret-id "postgres_secrets" \
+        --secret-string "{
+          \"POSTGRES_USER\": \"${{ secrets.POSTGRES_USER }}\",
+          \"POSTGRES_PASSWORD\": \"${{ secrets.POSTGRES_PASSWORD }}\",
+          \"POSTGRES_DB\": \"${{ secrets.POSTGRES_DB }}\",
+          \"DATABASE_URL\": \"${{ secrets.DATABASE_URL }}\"
+        }"       
+
+  
