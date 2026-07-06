@@ -25,7 +25,7 @@ jobs:
       working-directory: ./terraform/environments/shared
       run: terraform init   
 
-    - name: terraform entire destroy
+    - name: terraform shared destroy
       working-directory: ./terraform/environments/shared
       run: terraform destroy -auto-approve 
 
@@ -42,11 +42,19 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }} 
 
+    - name: Update kubeconfig for dev-test
+      run: aws eks update-kubeconfig --name dev-test-cluster --region ${{ env.AWS_REGION }}
+
+    - name: Uninstall Helm releases manually
+      run: |
+        helm uninstall aws-load-balancer-controller -n kube-system || true
+        helm uninstall external-secrets -n external-secrets || true
+
     - name: terraform init
       working-directory: ./terraform/environments/dev-test
       run: terraform init   
 
-    - name: terraform entire destroy
+    - name: terraform dev-test destroy
       working-directory: ./terraform/environments/dev-test
       run: terraform destroy -auto-approve -var-file=main.tfvars
 
@@ -63,10 +71,18 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }} 
 
+    - name: Update kubeconfig for prod
+      run: aws eks update-kubeconfig --name prod-cluster --region ${{ env.AWS_REGION }}
+
+    - name: Uninstall Helm releases manually
+      run: |
+        helm uninstall aws-load-balancer-controller -n kube-system || true
+        helm uninstall external-secrets -n external-secrets || true
+
     - name: terraform init
       working-directory: ./terraform/environments/prod
       run: terraform init   
 
-    - name: terraform entire destroy
+    - name: terraform prod destroy
       working-directory: ./terraform/environments/prod
       run: terraform destroy -auto-approve -var-file=main.tfvars
