@@ -7,7 +7,7 @@ module "vpc" {
   public_subnet_azs    = var.public_subnet_azs
   private_subnet_cidrs = var.private_subnet_cidrs
   private_subnet_azs   = var.private_subnet_azs
-  cluster_name         = module.eks.cluster_name
+  cluster_name         = var.cluster_name
 
 }
 
