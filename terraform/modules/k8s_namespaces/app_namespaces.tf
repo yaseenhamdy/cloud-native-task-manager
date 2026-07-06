@@ -1,17 +1,8 @@
-resource "kubernetes_namespace" "dev_namespace" {
+resource "kubernetes_namespace" "namespaces" {
+  for_each = var.k8s_namespaces
+
   metadata {
-    name = "dev"
+    name = each.value
   }
 }
 
-resource "kubernetes_namespace" "test_namespace" {
-  metadata {
-    name = "test"
-  }
-}
-
-resource "kubernetes_namespace" "prod_namespace" {
-  metadata {
-    name = "prod"
-  }
-}

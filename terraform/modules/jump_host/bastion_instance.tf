@@ -24,6 +24,7 @@ resource "aws_instance" "bastion_host" {
 
   associate_public_ip_address = true
 
+
   user_data = <<-EOF
 #!/bin/bash
 
@@ -46,8 +47,8 @@ chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
 
 # configure EKS cluster
 aws eks update-kubeconfig \
-  --name tasker-app \
-  --region us-east-1 \
+  --name ${var.eks_cluster_name} \
+  --region us-east-1 
 
 #create a copy for ec2-user's convenience
 mkdir -p /home/ec2-user/.kube
@@ -57,8 +58,9 @@ chown ec2-user:ec2-user /home/ec2-user/.kube/config
 # apply the manifests
 cd /home/ec2-user/cloud-native-task-manager/k8s
 kubectl apply -f infra/
-kubectl apply -k overlays/test
-
+%{ for ns in values(var.k8s_namespaces) ~}
+kubectl apply -k overlays/${ns}
+%{ endfor ~}
 
 EOF
 
@@ -66,6 +68,6 @@ EOF
 
 
   tags = {
-    Name = "Bastion"
+    Name = var.bastion_name
   }
 }

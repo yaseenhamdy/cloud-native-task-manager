@@ -4,7 +4,7 @@ module "external_secrets_irsa_role" {
 
   version = "5.39.0"
 
-  role_name = "external-secrets-role"
+  role_name = "external-secrets-role-${var.environment}"
 
   oidc_providers = {
 

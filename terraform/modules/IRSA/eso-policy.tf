@@ -1,7 +1,7 @@
 
 resource "aws_iam_policy" "external_secrets_policy" {
 
-  name = "external-secrets-policy"
+  name = "external-secrets-policy-${var.environment}"
 
   policy = jsonencode({
 

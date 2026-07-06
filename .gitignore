@@ -54,9 +54,7 @@ logs/
 crash.log
 crash.*.log
 
-# Sensitive terraform vars
-*.tfvars
-*.tfvars.json
+
 
 # Override files
 override.tf
