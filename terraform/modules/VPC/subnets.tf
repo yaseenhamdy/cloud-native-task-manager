@@ -25,6 +25,6 @@ resource "aws_subnet" "private_subnet" {
 
     "kubernetes.io/role/internal-elb" = "1"
 
-    "kubernetes.io/cluster/tasker-app" = "shared"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
   }
 }
