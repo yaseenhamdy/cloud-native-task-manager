@@ -33,7 +33,7 @@ jobs:
 
  terraform-dev-test-destroy:
   runs-on: ubuntu-latest
-  needs: terraform-remove-argocd-clusters
+  # needs: terraform-remove-argocd-clusters
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
