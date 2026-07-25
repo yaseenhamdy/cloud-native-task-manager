@@ -14,7 +14,7 @@ on:
     types: [completed]
     branches:
       - main
-      - feature/multi-eks-cluster
+      - feature/argoCD
 
 env:
   AWS_REGION: us-east-1

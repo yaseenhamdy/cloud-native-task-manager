@@ -5,7 +5,7 @@ on:
      - 'terraform/**'
    branches:
      - main
-     - feature/multi-eks-cluster
+     - feature/argoCD
   workflow_dispatch:
   
 
@@ -65,4 +65,26 @@ jobs:
           \"DATABASE_URL\": \"${{ secrets.DATABASE_URL }}\"
         }"       
 
+ terraform-apply-tools-cluster:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}       
+   
+
+    - name: terraform init tools env
+      working-directory: ./terraform/environments/tools
+      run: terraform init       
+
+
+    - name: terraform apply tools env 
+      working-directory: ./terraform/environments/tools
+      run: terraform apply -auto-approve -target=module.vpc -target=module.eks -target=module.argo-CD-irsa -target=module.argoCD_chart -var-file=main.tfvars
   
