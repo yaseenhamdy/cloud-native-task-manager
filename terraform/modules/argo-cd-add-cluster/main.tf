@@ -20,7 +20,7 @@ resource "kubernetes_secret" "clusters_add" {
 
   metadata {
     name      = "${each.key}-cluster"
-    namespace = argo-cd
+    namespace = "argo-cd"
     labels = {
       "argocd.argoproj.io/secret-type" = "cluster"
     }
