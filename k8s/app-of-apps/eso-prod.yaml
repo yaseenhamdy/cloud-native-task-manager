@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod-eso
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.external-secrets.io
+      chart: external-secrets
+      targetRevision: "0.9.20"   
+      helm:
+        valueFiles:
+          - $values/k8s/charts/eso/values.yaml
+    - repoURL: https://github.com/yaseenhamdy/cloud-native-task-manager.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    name: prod-cluster  
+    namespace: external-secrets
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false  

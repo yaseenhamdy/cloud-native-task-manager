@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prod-alb
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://aws.github.io/eks-charts
+      chart: aws-load-balancer-controller
+      targetRevision: "1.8.1"
+      helm:
+        valueFiles:
+          - $values/k8s/charts/alb/values-prod.yaml
+    - repoURL: https://github.com/yaseenhamdy/cloud-native-task-manager.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    name: dev-test-cluster
+    namespace: kube-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=false

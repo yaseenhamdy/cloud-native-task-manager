@@ -55,12 +55,12 @@ mkdir -p /home/ec2-user/.kube
 cp /root/.kube/config /home/ec2-user/.kube/config
 chown ec2-user:ec2-user /home/ec2-user/.kube/config
 
-# apply the manifests
-cd /home/ec2-user/cloud-native-task-manager/k8s
-kubectl apply -f infra/
-%{ for ns in values(var.k8s_namespaces) ~}
-kubectl apply -k overlays/${ns}
-%{ endfor ~}
+# # apply the manifests
+# cd /home/ec2-user/cloud-native-task-manager/k8s
+# kubectl apply -f infra/
+# %{ for ns in values(var.k8s_namespaces) ~}
+# kubectl apply -k overlays/${ns}
+# %{ endfor ~}
 
 EOF
 

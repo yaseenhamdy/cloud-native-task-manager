@@ -7,7 +7,7 @@ module "vpc" {
   public_subnet_azs    = var.public_subnet_azs
   private_subnet_cidrs = var.private_subnet_cidrs
   private_subnet_azs   = var.private_subnet_azs
-  cluster_name         = module.eks.cluster_name
+  cluster_name         = var.cluster_name
 
 }
 
@@ -86,16 +86,23 @@ module "service_accounts" {
 
 }
 
-module "helm_charts" {
-  source     = "../../modules/Helm-Charts"
-  depends_on = [module.eks, module.service_accounts]
+# module "helm_charts" {
+#   source     = "../../modules/Helm-Charts"
+#   depends_on = [module.eks, module.service_accounts]
 
-  cluster_name = module.eks.cluster_name
-}
+#   cluster_name = module.eks.cluster_name
+# }
 
 
 module "app_namespaces" {
   source         = "../../modules/k8s_namespaces"
   k8s_namespaces = var.k8s_namespaces
   depends_on     = [module.eks]
+}
+
+module "argo_cd_integrations" {
+  source = "../../modules/argoCD_integrations"
+   cluster_name = var.cluster_name
+  argoCD_role_arn = data.terraform_remote_state.tools.outputs.argo_cd_irsa_role_arn
+
 }

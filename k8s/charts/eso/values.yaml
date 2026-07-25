@@ -1,0 +1,5 @@
+serviceAccount:
+  create: false
+  name: external-secrets-sa
+
+installCRDs: true

@@ -1,0 +1,6 @@
+serviceAccount:
+  create: false
+  name: aws-load-balancer-controller
+
+clusterName: dev-test-cluster
+region: us-east-1
