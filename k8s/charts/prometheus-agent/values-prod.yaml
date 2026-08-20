@@ -1,0 +1,39 @@
+prometheus:
+  prometheusSpec:
+    walCompression: true
+
+    # Agent mode: scrape only, don't keep long-term local storage
+    retention: 2h              # just a small safety buffer, not long-term storage
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+
+    externalLabels:
+      cluster: prod             # Phase 6 label, adding now so it's ready
+
+    remoteWrite:
+      - url: "http://PLACEHOLDER-central-prometheus.tools.local:9090/api/v1/write"
+        basicAuth:
+          username:
+            name: prometheus-remote-write-auth
+            key: username
+          password:
+            name: prometheus-remote-write-auth
+            key: password
+
+grafana:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

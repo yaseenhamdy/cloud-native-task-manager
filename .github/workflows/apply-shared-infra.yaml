@@ -65,6 +65,43 @@ jobs:
           \"DATABASE_URL\": \"${{ secrets.DATABASE_URL }}\"
         }"       
 
+
+    - name: Ensure prometheus_secrets exists
+      run: |
+        aws secretsmanager create-secret \
+        --name prometheus_secrets \
+        --secret-string '{"username":"","password":"","web-config":""}' || true
+
+    - name: Put Prometheus secrets
+      env:
+        PROM_USER: ${{ secrets.PROMETHEUS_USERNAME }}
+        PROM_PASS: ${{ secrets.PROMETHEUS_PASSWORD }}
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y apache2-utils
+        HASH=$(htpasswd -nbBC 12 "" "$PROM_PASS" | tr -d ':\n')
+        WEB_CONFIG=$(printf 'basic_auth_users:\n  %s: %s\n' "$PROM_USER" "$HASH")
+        aws secretsmanager put-secret-value \
+        --secret-id "prometheus_secrets" \
+        --secret-string "$(jq -n --arg u "$PROM_USER" --arg p "$PROM_PASS" --arg wc "$WEB_CONFIG" \
+          '{username:$u, password:$p, "web-config":$wc}')"
+
+    - name: Ensure grafana_secrets exists
+      run: |
+        aws secretsmanager create-secret \
+        --name grafana_secrets \
+        --secret-string '{"admin-user":"","admin-password":""}' || true
+
+    - name: Put Grafana secrets
+      run: |
+        aws secretsmanager put-secret-value \
+        --secret-id "grafana_secrets" \
+        --secret-string "{
+          \"admin-user\": \"${{ secrets.GRAFANA_ADMIN_USER }}\",
+          \"admin-password\": \"${{ secrets.GRAFANA_ADMIN_PASSWORD }}\"
+        }"
+
+        
  terraform-apply-tools-stage-1:
   runs-on: ubuntu-latest
   steps:

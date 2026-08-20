@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: prometheus-agent-prod
+  namespace: argo-cd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: "65.5.1"
+      helm:
+        valueFiles:
+          - $values/k8s/charts/prometheus-agent/values-prod.yaml
+    - repoURL: https://github.com/yaseenhamdy/cloud-native-task-manager.git
+      targetRevision: HEAD
+      ref: values
+  destination:
+    name: prod-cluster   
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

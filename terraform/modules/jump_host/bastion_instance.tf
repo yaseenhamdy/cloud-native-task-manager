@@ -42,8 +42,8 @@ sudo ./aws/install
 sudo dnf install -y git
 
 # clone the repo 
-git clone https://github.com/yaseenhamdy/cloud-native-task-manager.git /home/ec2-user/cloud-native-task-manager
-chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
+# git clone https://github.com/yaseenhamdy/cloud-native-task-manager.git /home/ec2-user/cloud-native-task-manager
+# chown -R ec2-user:ec2-user /home/ec2-user/cloud-native-task-manager
 
 # configure EKS cluster
 aws eks update-kubeconfig \

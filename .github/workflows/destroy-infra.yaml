@@ -10,30 +10,30 @@ env:
 
 jobs:
 
- terraform-remove-argocd-clusters:
-  runs-on: ubuntu-latest
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+#  terraform-remove-argocd-clusters:
+#   runs-on: ubuntu-latest
+#   steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
 
-    - name: Terraform Setup action
-      uses: ./.github/actions/terraform-setup
-      with:
-       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-       aws-region: ${{ env.AWS_REGION }}
+#     - name: Terraform Setup action
+#       uses: ./.github/actions/terraform-setup
+#       with:
+#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#        aws-region: ${{ env.AWS_REGION }}
 
-    - name: terraform init
-      working-directory: ./terraform/environments/tools
-      run: terraform init
+#     - name: terraform init
+#       working-directory: ./terraform/environments/tools
+#       run: terraform init
 
-    - name: terraform destroy argo_cd_add_clusters
-      working-directory: ./terraform/environments/tools
-      run: terraform destroy -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
+#     - name: terraform destroy argo_cd_add_clusters
+#       working-directory: ./terraform/environments/tools
+#       run: terraform destroy -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
 
  terraform-dev-test-destroy:
   runs-on: ubuntu-latest
-  needs: terraform-remove-argocd-clusters
+  # needs: terraform-remove-argocd-clusters
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -48,10 +48,10 @@ jobs:
     - name: Update kubeconfig for dev-test
       run: aws eks update-kubeconfig --name dev-test-cluster --region ${{ env.AWS_REGION }}
 
-    - name: Uninstall Helm releases manually
-      run: |
-        helm uninstall aws-load-balancer-controller -n kube-system || true
-        helm uninstall external-secrets -n external-secrets || true
+    # - name: Uninstall Helm releases manually
+    #   run: |
+    #     helm uninstall aws-load-balancer-controller -n kube-system || true
+    #     helm uninstall external-secrets -n external-secrets || true
 
     - name: terraform init
       working-directory: ./terraform/environments/dev-test
@@ -63,7 +63,7 @@ jobs:
 
  terraform-prod-destroy:
   runs-on: ubuntu-latest
-  needs: terraform-remove-argocd-clusters
+  # needs: terraform-remove-argocd-clusters
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -78,10 +78,10 @@ jobs:
     - name: Update kubeconfig for prod
       run: aws eks update-kubeconfig --name prod-cluster --region ${{ env.AWS_REGION }}
 
-    - name: Uninstall Helm releases manually
-      run: |
-        helm uninstall aws-load-balancer-controller -n kube-system || true
-        helm uninstall external-secrets -n external-secrets || true
+    # - name: Uninstall Helm releases manually
+    #   run: |
+    #     helm uninstall aws-load-balancer-controller -n kube-system || true
+    #     helm uninstall external-secrets -n external-secrets || true
 
     - name: terraform init
       working-directory: ./terraform/environments/prod
