@@ -10,30 +10,8 @@ env:
 
 jobs:
 
-#  terraform-remove-argocd-clusters:
-#   runs-on: ubuntu-latest
-#   steps:
-#     - name: Checkout code
-#       uses: actions/checkout@v4
-
-#     - name: Terraform Setup action
-#       uses: ./.github/actions/terraform-setup
-#       with:
-#        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#        aws-region: ${{ env.AWS_REGION }}
-
-#     - name: terraform init
-#       working-directory: ./terraform/environments/tools
-#       run: terraform init
-
-#     - name: terraform destroy argo_cd_add_clusters
-#       working-directory: ./terraform/environments/tools
-#       run: terraform destroy -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
-
- terraform-dev-test-destroy:
+ argocd-cleanup:
   runs-on: ubuntu-latest
-  # needs: terraform-remove-argocd-clusters
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -45,13 +23,44 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
-    - name: Update kubeconfig for dev-test
-      run: aws eks update-kubeconfig --name dev-test-cluster --region ${{ env.AWS_REGION }}
+    - name: Clean up ArgoCD applications and leftover load balancers
+      run: bash scripts/destroy-project.sh
 
-    # - name: Uninstall Helm releases manually
-    #   run: |
-    #     helm uninstall aws-load-balancer-controller -n kube-system || true
-    #     helm uninstall external-secrets -n external-secrets || true
+ terraform-remove-argocd-clusters:
+  runs-on: ubuntu-latest
+  needs: argocd-cleanup
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}
+
+    - name: terraform init
+      working-directory: ./terraform/environments/tools
+      run: terraform init
+
+    - name: terraform destroy argo_cd_add_clusters
+      working-directory: ./terraform/environments/tools
+      run: terraform destroy -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
+
+ terraform-dev-test-destroy:
+  runs-on: ubuntu-latest
+  needs: terraform-remove-argocd-clusters
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}
 
     - name: terraform init
       working-directory: ./terraform/environments/dev-test
@@ -63,7 +72,7 @@ jobs:
 
  terraform-prod-destroy:
   runs-on: ubuntu-latest
-  # needs: terraform-remove-argocd-clusters
+  needs: terraform-remove-argocd-clusters
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -75,14 +84,6 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
-    - name: Update kubeconfig for prod
-      run: aws eks update-kubeconfig --name prod-cluster --region ${{ env.AWS_REGION }}
-
-    # - name: Uninstall Helm releases manually
-    #   run: |
-    #     helm uninstall aws-load-balancer-controller -n kube-system || true
-    #     helm uninstall external-secrets -n external-secrets || true
-
     - name: terraform init
       working-directory: ./terraform/environments/prod
       run: terraform init
@@ -91,9 +92,31 @@ jobs:
       working-directory: ./terraform/environments/prod
       run: terraform destroy -auto-approve -var-file=main.tfvars
 
- terraform-shared-destroy:
+ terraform-tools-destroy:
   runs-on: ubuntu-latest
   needs: [terraform-dev-test-destroy, terraform-prod-destroy]
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Terraform Setup action
+      uses: ./.github/actions/terraform-setup
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}
+
+    - name: terraform init
+      working-directory: ./terraform/environments/tools
+      run: terraform init
+
+    - name: terraform tools destroy
+      working-directory: ./terraform/environments/tools
+      run: terraform destroy -auto-approve -var-file=main.tfvars
+
+ terraform-shared-destroy:
+  runs-on: ubuntu-latest
+  needs: terraform-tools-destroy
   steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -112,3 +135,49 @@ jobs:
     - name: terraform shared destroy
       working-directory: ./terraform/environments/shared
       run: terraform destroy -auto-approve -var-file=main.tfvars
+
+ aws-secrets-delete:
+  runs-on: ubuntu-latest
+  needs: terraform-shared-destroy
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}
+
+    - name: Delete prometheus_secrets
+      run: |
+        aws secretsmanager delete-secret \
+        --secret-id prometheus_secrets \
+        --force-delete-without-recovery || true
+
+    - name: Delete grafana_secrets
+      run: |
+        aws secretsmanager delete-secret \
+        --secret-id grafana_secrets \
+        --force-delete-without-recovery || true
+
+ destroy-tf-state:
+  runs-on: ubuntu-latest
+  needs: [terraform-shared-destroy, aws-secrets-delete]
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+       aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+       aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+       aws-region: ${{ env.AWS_REGION }}
+
+    - name: Delete terraform state backend (S3 + DynamoDB)
+      run: |
+        aws s3 rm s3://tasker-app-terraform-state --recursive
+        aws s3api delete-bucket --bucket tasker-app-terraform-state
+        aws dynamodb delete-table --table-name lock-state
