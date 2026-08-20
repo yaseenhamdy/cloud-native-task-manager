@@ -161,4 +161,4 @@ jobs:
 
     - name: terraform apply tools env (stage 2 - irsa + argocd chart)
       working-directory: ./terraform/environments/tools
-      run: terraform apply -auto-approve -target=module.argo-CD-irsa -target=module.argoCD_chart -var-file=main.tfvars
+      run: terraform apply -auto-approve -target=module.argo-CD-irsa -target=module.irsa -target=module.service_accounts -target=module.argoCD_chart -var-file=main.tfvars
