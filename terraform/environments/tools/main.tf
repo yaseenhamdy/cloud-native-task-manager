@@ -20,13 +20,34 @@ module "eks" {
 
   cluster_name = var.cluster_name
 
-  kubernetes_version = "1.33"
+  kubernetes_version = "1.35"
 
 
   private_subnet_ids = module.vpc.private_subnet_ids
 
   depends_on = [module.vpc]
 }
+
+module "irsa" {
+
+  source = "../../modules/IRSA"
+
+  oidc_provider_arn = module.eks.oidc_provider_arn
+
+  environment = var.cluster_name
+
+  depends_on = [module.eks]
+}
+
+module "service_accounts" {
+  source       = "../../modules/service_accounts"
+  alb_role_arn = module.irsa.alb_controller_role_arn
+  eso_role_arn = module.irsa.external_secrets_role_arn
+
+  depends_on = [module.irsa, module.eks]
+
+}
+
 
 module "argo-CD-irsa" {
   source            = "../../modules/Argo-CD-IRSA"

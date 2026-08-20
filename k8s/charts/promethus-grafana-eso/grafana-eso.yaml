@@ -1,0 +1,20 @@
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: grafana-admin-auth
+  namespace: monitoring
+spec:
+  secretStoreRef:
+    name: aws-secret-store
+    kind: ClusterSecretStore
+  target:
+    name: grafana-admin-auth
+  data:
+    - secretKey: admin-user
+      remoteRef:
+        key: grafana_secrets
+        property: admin-user
+    - secretKey: admin-password
+      remoteRef:
+        key: grafana_secrets
+        property: admin-password

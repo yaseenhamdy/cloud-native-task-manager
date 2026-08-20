@@ -1,0 +1,78 @@
+# ---------- Prometheus ----------
+prometheus:
+  prometheusSpec:
+    enableRemoteWriteReceiver: true
+    retention: 15d              # how long to keep data locally in tools cluster
+    web:
+      webConfigFile:
+        secret:
+          name: prometheus-web-config
+          key: web-config.yaml
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi      # adjust based on your node/EBS setup
+
+# ---------- Grafana ----------
+grafana:
+  enabled: true
+  admin:
+    existingSecret: grafana-admin-auth
+    userKey: admin-user
+    passwordKey: admin-password  
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+  service:
+    type: ClusterIP              # keep internal for now; you'll decide how to expose it later (port-forward or ALB Ingress)
+  persistence:
+    enabled: true
+    size: 2Gi
+  envFromSecret: prometheus-datasource-env
+  sidecar:
+    datasources:
+      defaultDatasourceEnabled: false
+  additionalDataSources:
+    - name: Prometheus
+      uid: prometheus
+      type: prometheus
+      access: proxy
+      url: http://kube-prometheus-stack-prometheus:9090
+      isDefault: true
+      basicAuth: true
+      basicAuthUser: ${PROM_USER}
+      secureJsonData:
+        basicAuthPassword: ${PROM_PASS}
+
+# ---------- Alertmanager ----------
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# ---------- node-exporter & kube-state-metrics ----------
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true
