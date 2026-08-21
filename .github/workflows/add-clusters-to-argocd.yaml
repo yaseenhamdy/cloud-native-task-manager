@@ -26,6 +26,20 @@ jobs:
       working-directory: ./terraform/environments/tools
       run: terraform init
 
+    - name: Detect existing clusters
+      id: detect
+      run: |
+        PROD=false
+        DEVTEST=false
+        aws eks describe-cluster --name prod-cluster >/dev/null 2>&1 && PROD=true || true
+        aws eks describe-cluster --name dev-test-cluster >/dev/null 2>&1 && DEVTEST=true || true
+        echo "prod=$PROD" >> "$GITHUB_OUTPUT"
+        echo "devtest=$DEVTEST" >> "$GITHUB_OUTPUT"
+
     - name: terraform apply argo_cd_add_clusters
       working-directory: ./terraform/environments/tools
-      run: terraform apply -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
+      run: |
+        terraform apply -auto-approve -target=module.argo_cd_add_clusters \
+          -var-file=main.tfvars \
+          -var "register_prod=${{ steps.detect.outputs.prod }}" \
+          -var "register_devtest=${{ steps.detect.outputs.devtest }}"

@@ -12,7 +12,7 @@ variable "cluster_name" {
 }
 
 variable "vpc_cidr" {
-  type    = string
+  type = string
 
 }
 
@@ -39,6 +39,18 @@ variable "private_subnet_azs" {
 }
 
 variable "k8s_namespaces" {
-  type = map(string)  
+  type = map(string)
+}
+
+variable "register_prod" {
+  description = "Register prod-cluster in ArgoCD (requires prod remote state to exist)"
+  type        = bool
+  default     = false
+}
+
+variable "register_devtest" {
+  description = "Register dev-test-cluster in ArgoCD (requires dev-test remote state to exist)"
+  type        = bool
+  default     = false
 }
 
