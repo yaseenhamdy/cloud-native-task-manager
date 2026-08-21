@@ -63,16 +63,23 @@ module "argoCD_chart" {
 }
 
 module "argo_cd_add_clusters" {
-  source                = "../../modules/argo-cd-add-cluster"
-  prod_cluster_name     = data.terraform_remote_state.prod.outputs.cluster_name
-  prod_cluster_endpoint = data.terraform_remote_state.prod.outputs.cluster_endpoint
-  prod_cluster_ca_data  = data.terraform_remote_state.prod.outputs.cluster_ca_data
+  source = "../../modules/argo-cd-add-cluster"
 
-  devtest_cluster_name     = data.terraform_remote_state.devtest.outputs.cluster_name
-  devtest_cluster_endpoint = data.terraform_remote_state.devtest.outputs.cluster_endpoint
-  devtest_cluster_ca_data  = data.terraform_remote_state.devtest.outputs.cluster_ca_data
+  clusters = {
+    prod = var.register_prod ? {
+      name     = data.terraform_remote_state.prod[0].outputs.cluster_name
+      endpoint = data.terraform_remote_state.prod[0].outputs.cluster_endpoint
+      ca_data  = data.terraform_remote_state.prod[0].outputs.cluster_ca_data
+    } : null
 
-  depends_on = [ module.argoCD_chart ]
+    devtest = var.register_devtest ? {
+      name     = data.terraform_remote_state.devtest[0].outputs.cluster_name
+      endpoint = data.terraform_remote_state.devtest[0].outputs.cluster_endpoint
+      ca_data  = data.terraform_remote_state.devtest[0].outputs.cluster_ca_data
+    } : null
+  }
+
+  depends_on = [module.argoCD_chart]
 
 }
 

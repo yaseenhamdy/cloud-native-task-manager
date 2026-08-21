@@ -1,17 +1,6 @@
 locals {
 
-  clusters = {
-    prod = {
-      name     = var.prod_cluster_name
-      endpoint = var.prod_cluster_endpoint
-      ca_data  = var.prod_cluster_ca_data
-    }
-    devtest = {
-      name     = var.devtest_cluster_name
-      endpoint = var.devtest_cluster_endpoint
-      ca_data  = var.devtest_cluster_ca_data
-    }
-  }
+  clusters = { for key, cluster in var.clusters : key => cluster if cluster != null }
 }
 
 

@@ -101,8 +101,9 @@ module "app_namespaces" {
 }
 
 module "argo_cd_integrations" {
-  source = "../../modules/argoCD_integrations"
-   cluster_name = var.cluster_name
+  source          = "../../modules/argoCD_integrations"
+  count           = var.enable_argocd_integration ? 1 : 0
+  cluster_name    = var.cluster_name
   argoCD_role_arn = data.terraform_remote_state.tools.outputs.argo_cd_irsa_role_arn
 
 }

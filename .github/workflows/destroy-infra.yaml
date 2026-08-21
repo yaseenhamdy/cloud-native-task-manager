@@ -23,7 +23,17 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check tools-cluster exists
+      id: tools_cluster
+      run: |
+        if aws eks describe-cluster --name tools-cluster >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - skipping cleanup (cluster absent)" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: Clean up ArgoCD applications and leftover load balancers
+      if: steps.tools_cluster.outputs.exists == 'true'
       run: bash scripts/destroy-project.sh
 
  terraform-remove-argocd-clusters:
@@ -40,13 +50,39 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check tools env was deployed
+      id: tools_state
+      run: |
+        if aws s3api head-object --bucket tasker-app-terraform-state --key tools/terraform.tfstate >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - nothing deployed, skipping" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: terraform init
+      if: steps.tools_state.outputs.exists == 'true'
       working-directory: ./terraform/environments/tools
       run: terraform init
 
+    - name: Detect registered clusters
+      id: detect
+      if: steps.tools_state.outputs.exists == 'true'
+      run: |
+        PROD=false
+        DEVTEST=false
+        aws eks describe-cluster --name prod-cluster >/dev/null 2>&1 && PROD=true || true
+        aws eks describe-cluster --name dev-test-cluster >/dev/null 2>&1 && DEVTEST=true || true
+        echo "prod=$PROD" >> "$GITHUB_OUTPUT"
+        echo "devtest=$DEVTEST" >> "$GITHUB_OUTPUT"
+
     - name: terraform destroy argo_cd_add_clusters
+      if: steps.tools_state.outputs.exists == 'true'
       working-directory: ./terraform/environments/tools
-      run: terraform destroy -auto-approve -target=module.argo_cd_add_clusters -var-file=main.tfvars
+      run: |
+        terraform destroy -auto-approve -target=module.argo_cd_add_clusters \
+          -var-file=main.tfvars \
+          -var "register_prod=${{ steps.detect.outputs.prod }}" \
+          -var "register_devtest=${{ steps.detect.outputs.devtest }}"
 
  terraform-dev-test-destroy:
   runs-on: ubuntu-latest
@@ -62,13 +98,30 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check environment was deployed
+      id: check
+      run: |
+        if aws s3api head-object --bucket tasker-app-terraform-state --key dev-test/terraform.tfstate >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - nothing deployed, skipping" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: terraform init
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/dev-test
       run: terraform init
 
     - name: terraform dev-test destroy
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/dev-test
       run: terraform destroy -auto-approve -var-file=main.tfvars
+
+    - name: Clear orphaned EKS leftovers
+      if: steps.check.outputs.exists == 'true'
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/dev-test-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/dev-test-cluster/cluster" || true
 
  terraform-prod-destroy:
   runs-on: ubuntu-latest
@@ -84,13 +137,30 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check environment was deployed
+      id: check
+      run: |
+        if aws s3api head-object --bucket tasker-app-terraform-state --key prod/terraform.tfstate >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - nothing deployed, skipping" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: terraform init
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/prod
       run: terraform init
 
     - name: terraform prod destroy
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/prod
       run: terraform destroy -auto-approve -var-file=main.tfvars
+
+    - name: Clear orphaned EKS leftovers
+      if: steps.check.outputs.exists == 'true'
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/prod-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/prod-cluster/cluster" || true
 
  terraform-tools-destroy:
   runs-on: ubuntu-latest
@@ -106,13 +176,30 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check environment was deployed
+      id: check
+      run: |
+        if aws s3api head-object --bucket tasker-app-terraform-state --key tools/terraform.tfstate >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - nothing deployed, skipping" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: terraform init
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/tools
       run: terraform init
 
     - name: terraform tools destroy
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/tools
       run: terraform destroy -auto-approve -var-file=main.tfvars
+
+    - name: Clear orphaned EKS leftovers
+      if: steps.check.outputs.exists == 'true'
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/tools-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/tools-cluster/cluster" || true
 
  terraform-shared-destroy:
   runs-on: ubuntu-latest
@@ -128,11 +215,22 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Check environment was deployed
+      id: check
+      run: |
+        if aws s3api head-object --bucket tasker-app-terraform-state --key shared/terraform.tfstate >/dev/null 2>&1; then
+          echo "exists=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "exists=false - nothing deployed, skipping" >> "$GITHUB_OUTPUT"
+        fi
+
     - name: terraform init
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/shared
       run: terraform init
 
     - name: terraform shared destroy
+      if: steps.check.outputs.exists == 'true'
       working-directory: ./terraform/environments/shared
       run: terraform destroy -auto-approve -var-file=main.tfvars
 
@@ -144,7 +242,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -170,7 +268,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
+      uses: aws-actions/configure-aws-credentials@v5
       with:
        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

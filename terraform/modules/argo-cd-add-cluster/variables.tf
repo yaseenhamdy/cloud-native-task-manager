@@ -1,19 +1,9 @@
-variable "prod_cluster_name" {
-  type = string
-}
-variable "prod_cluster_endpoint" {
-  type = string
-}
-variable "prod_cluster_ca_data" {
-  type = string
-}
-
-variable "devtest_cluster_name" {
-  type = string
-}
-variable "devtest_cluster_endpoint" {
-  type = string
-}
-variable "devtest_cluster_ca_data" {
-  type = string
+variable "clusters" {
+  description = "Map of EKS clusters to register in ArgoCD. Entries set to null are skipped."
+  type = map(object({
+    name     = string
+    endpoint = string
+    ca_data  = string
+  }))
+  default = {}
 }

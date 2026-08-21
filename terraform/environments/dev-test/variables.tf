@@ -12,7 +12,7 @@ variable "cluster_name" {
 }
 
 variable "vpc_cidr" {
-  type    = string
+  type = string
 
 }
 
@@ -39,5 +39,11 @@ variable "private_subnet_azs" {
 }
 
 variable "k8s_namespaces" {
-  type = map(string)  
+  type = map(string)
+}
+
+variable "enable_argocd_integration" {
+  description = "Create EKS access entry for ArgoCD (requires tools remote state to contain argo_cd_irsa_role_arn)"
+  type        = bool
+  default     = false
 }
