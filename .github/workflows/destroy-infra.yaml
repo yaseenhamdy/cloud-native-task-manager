@@ -70,6 +70,11 @@ jobs:
       working-directory: ./terraform/environments/dev-test
       run: terraform destroy -auto-approve -var-file=main.tfvars
 
+    - name: Clear orphaned EKS leftovers
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/dev-test-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/dev-test-cluster/cluster" || true
+
  terraform-prod-destroy:
   runs-on: ubuntu-latest
   needs: terraform-remove-argocd-clusters
@@ -91,6 +96,11 @@ jobs:
     - name: terraform prod destroy
       working-directory: ./terraform/environments/prod
       run: terraform destroy -auto-approve -var-file=main.tfvars
+
+    - name: Clear orphaned EKS leftovers
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/prod-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/prod-cluster/cluster" || true
 
  terraform-tools-destroy:
   runs-on: ubuntu-latest

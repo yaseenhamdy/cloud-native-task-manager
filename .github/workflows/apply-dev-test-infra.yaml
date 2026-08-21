@@ -70,6 +70,19 @@ jobs:
       run: terraform init       
 
 
+    - name: Clear orphaned EKS leftovers
+      run: |
+        CLUSTER=dev-test-cluster
+        STATUS=$(aws eks describe-cluster --name "$CLUSTER" --query 'cluster.status' --output text 2>/dev/null || echo NOT_FOUND)
+        echo "EKS cluster status: $STATUS"
+        if [ "$STATUS" = "NOT_FOUND" ]; then
+          echo "Cluster gone - clearing orphaned leftovers"
+          aws kms delete-alias --alias-name "alias/eks/$CLUSTER" || true
+          aws logs delete-log-group --log-group-name "/aws/eks/$CLUSTER/cluster" || true
+        else
+          echo "Cluster exists - skipping cleanup"
+        fi
+
     - name: terraform apply dev-test env (stage 2)
       working-directory: ./terraform/environments/dev-test
       run: terraform apply -auto-approve -target=module.eks -target=module.irsa -var-file=main.tfvars
