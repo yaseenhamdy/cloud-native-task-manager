@@ -47,6 +47,19 @@ jobs:
        aws-region: ${{ env.AWS_REGION }}       
    
 
+    - name: Clear secrets stuck in pending deletion
+      run: |
+        for s in postgres_secrets prometheus_secrets grafana_secrets; do
+          deleted=$(aws secretsmanager describe-secret --secret-id "$s" \
+            --query 'DeletedDate' --output text 2>/dev/null || echo None)
+          if [ "$deleted" != "None" ]; then
+            echo "Secret $s is pending deletion - force deleting"
+            aws secretsmanager delete-secret --secret-id "$s" --force-delete-without-recovery || true
+          else
+            echo "Secret $s not found or active - skipping"
+          fi
+        done
+
     - name: terraform init shared env
       working-directory: ./terraform/environments/shared
       run: terraform init       
