@@ -146,6 +146,19 @@ jobs:
        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
        aws-region: ${{ env.AWS_REGION }}
 
+    - name: Clear orphaned EKS leftovers
+      run: |
+        CLUSTER=tools-cluster
+        STATUS=$(aws eks describe-cluster --name "$CLUSTER" --query 'cluster.status' --output text 2>/dev/null || echo NOT_FOUND)
+        echo "EKS cluster status: $STATUS"
+        if [ "$STATUS" = "NOT_FOUND" ]; then
+          echo "Cluster gone - clearing orphaned leftovers"
+          aws kms delete-alias --alias-name "alias/eks/$CLUSTER" || true
+          aws logs delete-log-group --log-group-name "/aws/eks/$CLUSTER/cluster" || true
+        else
+          echo "Cluster exists - skipping cleanup"
+        fi
+
     - name: terraform init tools env
       working-directory: ./terraform/environments/tools
       run: terraform init

@@ -114,6 +114,11 @@ jobs:
       working-directory: ./terraform/environments/tools
       run: terraform destroy -auto-approve -var-file=main.tfvars
 
+    - name: Clear orphaned EKS leftovers
+      run: |
+        aws kms delete-alias --alias-name "alias/eks/tools-cluster" || true
+        aws logs delete-log-group --log-group-name "/aws/eks/tools-cluster/cluster" || true
+
  terraform-shared-destroy:
   runs-on: ubuntu-latest
   needs: terraform-tools-destroy
