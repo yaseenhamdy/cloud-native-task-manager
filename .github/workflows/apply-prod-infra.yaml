@@ -106,9 +106,20 @@ jobs:
       working-directory: ./terraform/environments/prod
       run: terraform init            
 
-    - name: terraform entire apply 
+    - name: Detect ArgoCD integration availability
+      id: argocd_integration
+      run: |
+        ENABLE=false
+        if aws s3api head-object --bucket tasker-app-terraform-state --key tools/terraform.tfstate >/dev/null 2>&1; then
+          if aws s3 cp "s3://tasker-app-terraform-state/tools/terraform.tfstate" - 2>/dev/null | grep -q "argo_cd_irsa_role_arn"; then
+            ENABLE=true
+          fi
+        fi
+        echo "enabled=$ENABLE" >> "$GITHUB_OUTPUT"
+
+    - name: terraform entire apply
       working-directory: ./terraform/environments/prod
-      run: terraform apply -auto-approve -var-file=main.tfvars
+      run: terraform apply -auto-approve -var-file=main.tfvars -var "enable_argocd_integration=${{ steps.argocd_integration.outputs.enabled }}"
 
   
     
